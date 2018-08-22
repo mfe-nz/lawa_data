@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.xml
+downloads/*.csv
+build/*.csv
+input/*.csv
+src/*.html
