@@ -162,14 +162,11 @@ build_getData_list <- function(region_name, site, endpoint, server){
     }
     if(server == "kisters"){
         #build the request
-        testrequest <- paste("service=Hilltop&request=GetData&Site=",site,"&Measurement=",measurement,"&From=",startDate,"&To=",endDate,sep="")
+        testrequest <- paste("datasource=0&service=SOS&version=2.0&request=GetObservation&featureOfInterest=",site,"&procedure=GWLawa.Sample.Results.P&observedProperty=",measurement,"&From=",startDate,"&To=",endDate,sep="")
         #get the xml data from the server
         tss_url <- endpoint_list[region == measurement_list[i, region], endpoint]
         url<-paste(tss_url, testrequest, sep="?")
         
-        measurementListrequest <- paste0("service=kisters&type=queryServices&request=getParameterList&datasource=0&format=html&station_id=",site)
-        #get the xml data from the server
-        url<-paste(endpoint, measurementListrequest, sep="?")
         datahtml <- readHTMLTable(url)
         
         df<-tryCatch({
@@ -177,6 +174,7 @@ build_getData_list <- function(region_name, site, endpoint, server){
         }, error=function(err){message(paste("Error retrieving measurements for: ", site))})
         return(df)
     }
+}
 
 #xmlParse function that works behind MFE Firewall
 xmlParse_fw <- function(url){

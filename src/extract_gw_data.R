@@ -11,6 +11,7 @@ region_list[(region %in% unique(measurement_list[,region])), region]
 startDate <- "1997-01-01"
 endDate <- "2017-12-31"
 
+start_time <- Sys.time()
 for(i in 1:nrow(region_list)){
     region_it <- region_list[i, region]
     cat("Extracting data from ", region_it,": \n\n")
@@ -37,4 +38,6 @@ for(i in 1:nrow(region_list)){
     gq_data <- NULL
     cat("Success!! \n\n\n")
 }
-    
+end_time <- Sys.time()
+
+elapsed_time <- end_time - start_time

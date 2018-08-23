@@ -69,4 +69,10 @@ colnames(num_sites_wfs)[colnames(num_sites_wfs) %in% "N"] <- "wfs_count"
 site_count <- merge(num_sites_ts, num_sites_wfs, by = "region")
 site_count[!(region %in% df_count[(ts_count == wfs_count),region]),]
 
-write.csv(site_list_merged, "build/site_list.csv", row.names = FALSE)
+# manually add Auckland sites 
+site_list_combined <- rbind(site_list_merged, 
+                              site_list_ts[region == "Auckland",], 
+                              use.names = TRUE, 
+                              fill = TRUE)
+
+write.csv(site_list_combined, "build/site_list.csv", row.names = FALSE)
