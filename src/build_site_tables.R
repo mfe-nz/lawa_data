@@ -29,7 +29,6 @@ for(i in 1:nrow(region_list)){
 }
 
 site_list <- rbindlist(site_list)
-write.csv(site_list, "build/site_list.csv", row.names = FALSE)
 
 # check Which regions are missing
 region_list[!(region %in% unique(site_list[,region])), region]
@@ -54,19 +53,20 @@ for(i in 1:nrow(region_list)){
 }
 
 site_list_ts <- rbindlist(site_list_ts, fill = TRUE)
+colnames(site_list_ts)[colnames(site_list_ts) %in% "site"] <- "councilsiteid"
 site_list_ts[region == "Waikato" |
                  region == "Auckland" |
                  region == "Bay of Plenty", councilsiteid := NULL.station_id]
-colnames(site_list_ts)[colnames(site_list_ts) %in% "site"] <- "councilsiteid"
 site_list_ts[, ts_site := TRUE]
 
-df <- merge(site_list, site_list_ts, all.x = TRUE, by = c("councilsiteid", "region"))
-num_sites_ts <- df[, sum(ts_site, na.rm = TRUE), by = region]
+site_list_merged <- merge(site_list, site_list_ts, all.x = TRUE, by = c("councilsiteid", "region"))
+num_sites_ts <- site_list_merged[, sum(ts_site, na.rm = TRUE), by = region]
 num_sites_wfs <- site_list[, .N, by = region]
 
 colnames(num_sites_ts)[colnames(num_sites_ts) %in% "V1"] <- "ts_count"
 colnames(num_sites_wfs)[colnames(num_sites_wfs) %in% "N"] <- "wfs_count"
 
-df <- merge(num_sites_ts, num_sites_wfs, by = "region")
-df[!(region %in% df[(ts_count == wfs_count),region]),]
+site_count <- merge(num_sites_ts, num_sites_wfs, by = "region")
+site_count[!(region %in% df_count[(ts_count == wfs_count),region]),]
 
+write.csv(site_list_merged, "build/site_list.csv", row.names = FALSE)
