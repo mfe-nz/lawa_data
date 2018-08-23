@@ -34,7 +34,7 @@ write.csv(site_list, "build/site_list.csv", row.names = FALSE)
 # check Which regions are missing
 region_list[!(region %in% unique(site_list[,region])), region]
 
-# test against time-series server
+# Get time-series server site names in order to debug any measurement list request issues
 
 site_list_ts <- list()
 for(i in 1:nrow(region_list)){
@@ -42,7 +42,7 @@ for(i in 1:nrow(region_list)){
         cat("Getting list of sites from: ", 
             region_list[i, region], " time-series server.\n") 
         df <- build_site_list(region_name = region_list[i, region], 
-                                     endpoint = paste0(endpoint_list[region == region_list[i, region], endpoint],"KiWIS/KiWIS/"),
+                                     endpoint = endpoint_list[region == region_list[i, region], endpoint],
                                      server = endpoint_list[region == region_list[i, region], server_system])
         df[,region := region_list[i, region]]
         site_list_ts[[i]] <- df
@@ -54,4 +54,19 @@ for(i in 1:nrow(region_list)){
 }
 
 site_list_ts <- rbindlist(site_list_ts, fill = TRUE)
-measurement_list <- measurement_list[!is.na(MeasurementName),]
+site_list_ts[region == "Waikato" |
+                 region == "Auckland" |
+                 region == "Bay of Plenty", councilsiteid := NULL.station_id]
+colnames(site_list_ts)[colnames(site_list_ts) %in% "site"] <- "councilsiteid"
+site_list_ts[, ts_site := TRUE]
+
+df <- merge(site_list, site_list_ts, all.x = TRUE, by = c("councilsiteid", "region"))
+num_sites_ts <- df[, sum(ts_site, na.rm = TRUE), by = region]
+num_sites_wfs <- site_list[, .N, by = region]
+
+colnames(num_sites_ts)[colnames(num_sites_ts) %in% "V1"] <- "ts_count"
+colnames(num_sites_wfs)[colnames(num_sites_wfs) %in% "N"] <- "wfs_count"
+
+df <- merge(num_sites_ts, num_sites_wfs, by = "region")
+df[!(region %in% df[(ts_count == wfs_count),region]),]
+

@@ -68,9 +68,6 @@ read_wfs <- function(region){
     df <- NULL
 }
 
-# ?
-# ?
-
 build_site_list <- function(region_name, endpoint, server){
     if(server == "hilltop"){
         siteListrequest <- "service=Hilltop&request=SiteList"
