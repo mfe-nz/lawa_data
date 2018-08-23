@@ -31,7 +31,7 @@ for(i in 1:nrow(region_list)){
     saveRDS(gq_data, paste0("downloads/",region_it, "_gw_data.RDS"), compress = TRUE)
     
     put_object(file = paste0("downloads/",region_it, "_gw_data.RDS"), 
-           object = paste0(region_it, "_gw_data"), 
+           object = paste0(region_it, "_gw_data.RDS"), 
            bucket = "lawa.data")
     
     file.remove(paste0("downloads/",region_it, "_gw_data.RDS"))
