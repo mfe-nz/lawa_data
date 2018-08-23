@@ -118,6 +118,66 @@ build_measurement_list <- function(region_name, site, endpoint, server){
     }
 }      
 
+build_getData_list <- function(region_name, site, endpoint, server){
+    if(server == "hilltop"){
+        #build the request
+        testrequest <- paste("service=Hilltop&request=GetData&Site=",site,"&Measurement=",measurement,"&From=",startDate,"&To=",endDate,sep="")
+        #get the xml data from the server
+        tss_url <- endpoint_list[region == measurement_list[i, region], endpoint]
+        url<-paste(tss_url, testrequest, sep="?")
+        dataxml<-anyXmlParse(url)
+        #convert the xml into a dataframe of measurement results
+        #with basic error handling
+        wqdata<-tryCatch({
+            as.data.table(hilltopMeasurement(dataxml))
+            }, error=function(err){message(paste("Error retrieving", site, measurement))})  
+        
+        ## WQ sample metadata (Hilltop servers only)
+        message(paste("Requesting", site, "WQ Sample metadata"))
+
+        #get the WQ Sample parameters for the site
+        #build the request
+        WQSampleRequest <- paste("service=Hilltop&request=GetData&Site=",site,"&Measurement=WQ Sample&From=",startDate,"&To=",endDate,sep="")
+        
+        #get the xml data from the server
+        url<-paste(tss_url, WQSampleRequest, sep="?")
+        wqdataxml<-anyXmlParse(url)
+        # wqdataxml<-xmlParse_fw(url)
+        
+        ##convert the xml to a dataframe of WQ Sample results
+        #with basic error handling added
+        wqSampleData<-tryCatch({
+            hilltopMeasurementToDF(wqdataxml)
+            }, error=function(err){message(paste("Error retrieving", site, "WQ Sample Information"))})
+        
+        #merge the WQ Sample data with the measurement data with basic error handling.
+        if(length(wqSampleData)>0){
+            output<-tryCatch({
+                merge(wqdata,wqSampleData,by="Time",all.x = TRUE)
+                }, error=function(err){message(paste("No WQ Sample information, leaving blank"))})
+            return(output)
+            } else {
+                return(wqdata)
+            }
+    }
+    if(server == "kisters"){
+        #build the request
+        testrequest <- paste("service=Hilltop&request=GetData&Site=",site,"&Measurement=",measurement,"&From=",startDate,"&To=",endDate,sep="")
+        #get the xml data from the server
+        tss_url <- endpoint_list[region == measurement_list[i, region], endpoint]
+        url<-paste(tss_url, testrequest, sep="?")
+        
+        measurementListrequest <- paste0("service=kisters&type=queryServices&request=getParameterList&datasource=0&format=html&station_id=",site)
+        #get the xml data from the server
+        url<-paste(endpoint, measurementListrequest, sep="?")
+        datahtml <- readHTMLTable(url)
+        
+        df<-tryCatch({
+            as.data.table(datahtml)
+        }, error=function(err){message(paste("Error retrieving measurements for: ", site))})
+        return(df)
+    }
+
 #xmlParse function that works behind MFE Firewall
 xmlParse_fw <- function(url){
     str<- tempfile(pattern = "file", tmpdir = tempdir())
