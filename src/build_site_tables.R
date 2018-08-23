@@ -3,12 +3,9 @@ source("src/load_wfs.R")
 
 # define minimum required fields
 fields <- c("siteid", "councilsiteid","lawasiteid", "gwqualitystatus")
-horizons_fields <- c("siteid", "siteid","lawasiteid", "gwqualitys")
-ecan_fields <- c("site_id", "council_site_id", "lawa_site_id", "gw_quality_status")
 
 # find which regions have minimum required cols
-# wfs_request_fields_ms[field_name %in% fields,]
-# wfs_request_fields_ms[field_name %in% fields,]
+wfs_request_fields_ms[field_name %in% fields,]
 
 site_list <- list()
 for(i in 1:nrow(region_list)){
@@ -38,3 +35,23 @@ write.csv(site_list, "build/site_list.csv", row.names = FALSE)
 region_list[!(region %in% unique(site_list[,region])), region]
 
 # test against time-series server
+
+site_list_ts <- list()
+for(i in 1:nrow(region_list)){
+    tryCatch({
+        cat("Getting list of sites from: ", 
+            region_list[i, region], " time-series server.\n") 
+        df <- build_site_list(region_name = region_list[i, region], 
+                                     endpoint = paste0(endpoint_list[region == region_list[i, region], endpoint],"KiWIS/KiWIS/"),
+                                     server = endpoint_list[region == region_list[i, region], server_system])
+        df[,region := region_list[i, region]]
+        site_list_ts[[i]] <- df
+        df <- NULL
+        cat("Success!! \n\n")
+    }, error=function(e){
+        cat("ERROR reading sites from", region_list[i, region],": \n",
+            conditionMessage(e), "\n\n")})
+}
+
+site_list_ts <- rbindlist(site_list_ts, fill = TRUE)
+measurement_list <- measurement_list[!is.na(MeasurementName),]

@@ -1,7 +1,6 @@
 # script to download wfs site information
 
-source("src/helpers.R")
-source("src/Hilltop.R")
+source("src/get_input_data.R")
 
 # Load csv with WFS endpoints
 wfs_list <- fread("input/wfs_list.csv")
@@ -51,7 +50,6 @@ GW_list <- melt(GW_list,
                 value.name = "gw_wfs")
 GW_list[gw_wfs == FALSE,]
 
-#horizons has "gwqualitys"
 # TODO: 
 # 1) assess if translation tables are required for wfs field names
 # 2) include other WFS information (consents drinking water and bores)

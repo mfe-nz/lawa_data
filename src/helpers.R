@@ -1,4 +1,5 @@
 # helpers.R
+
 #Install the required packages
 pkgs <- c('XML',
           'reshape2',
@@ -12,15 +13,9 @@ pkgs <- c('XML',
 if(!all(pkgs %in% installed.packages()[, 'Package']))
     install.packages(pkgs[!(pkgs %in% installed.packages()[, 'Package'])], dep = T)
 
-library(XML)
-library(reshape2)
-library(plyr)
-library(RCurl)
-library(data.table)
-library(parallel)
-library(readxl)
-library(aws.s3)
-library(pbmcapply)
+lapply(pkgs, require, character.only = TRUE)
+
+source("src/Hilltop.R")
 
 download_wfs <- function(url, region){
     if(!file.exists(paste0("downloads/", region, "_wfs.csv"))){
@@ -73,30 +68,32 @@ read_wfs <- function(region){
     df <- NULL
 }
 
+# ?
+# ?
 
-hilltopDsMeasList <- function(measlistxml) {
-    #Helper function.
-    #Takes an xml document from a Hilltop MeasurementList at a Site request. 
-    #Returns a dataframe of the datasource information and measurements names.
-    dstemp <- do.call(rbind, xpathApply(measlistxml, "/HilltopServer/DataSource", function(node) {
-        xp <- "./*"
-        datasource <- xmlGetAttr(node, "Name")
-        type <- xpathSApply(node, "./TSType", xmlValue)
-        datasourceid <- paste(type, datasource)
-        attribute <- xpathSApply(node, xp, xmlName)
-        value <- xpathSApply(node, xp, function(x) {
-            if(xmlName(x) == "Measurement") {xmlGetAttr(x, "Name") } else {xmlValue(x) }
-        } )
-        data.frame(datasourceid, datasource, attribute, value, stringsAsFactors = FALSE)
-    } ) )
-    ds <- subset(dstemp, attribute != "Measurement")
-    meas <- subset(dstemp, attribute == "Measurement", select = c("datasourceid", "value") )
-    colnames(meas) [which(names(meas) == "value") ] <- "MeasurementName"
-    castds <- dcast(ds, datasourceid + datasource ~ attribute, value.var = "value")
-    castds <- merge(castds, meas, all = TRUE)
-    castds <- subset(castds, select= -c(datasourceid) )
-    
-    return(castds)
+build_site_list <- function(region_name, endpoint, server){
+    if(server == "hilltop"){
+        siteListrequest <- "service=Hilltop&request=SiteList"
+        #get the xml data from the server
+        url<-paste(endpoint, siteListrequest, sep="?")
+        dataxml<-anyXmlParse(url)
+        
+        df<-tryCatch({
+            as.data.table(hilltopSiteList(dataxml))
+        }, error=function(err){message(paste("Error retrieving sites for: ", region_name))})
+        return(df)
+    }
+    if(server == "kisters"){
+        siteListrequest <- "service=kisters&type=queryServices&request=getStationList&datasource=0&format=html"
+        #get the xml data from the server
+        url<-paste(endpoint, siteListrequest, sep="?")
+        datahtml <- readHTMLTable(url)
+        
+        df<-tryCatch({
+            as.data.table(datahtml)
+        }, error=function(err){message(paste("Error retrieving sites for: ", region_name))})
+        return(df)
+        }
 }
 
 build_measurement_list <- function(region_name, site, endpoint, server){
@@ -121,9 +118,6 @@ build_measurement_list <- function(region_name, site, endpoint, server){
             as.data.table(datahtml)
         }, error=function(err){message(paste("Error retrieving measurements for: ", site))})
         return(df)
-
-        #need kilsters DsMeasList function
-        #need to ensure measurementListrequest schema is correct
     }
 }      
 

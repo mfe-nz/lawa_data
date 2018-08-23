@@ -3,8 +3,6 @@
 source("src/build_site_tables.R")
 
 site_list <- fread("build/site_list.csv")
-endpoint_list <- fread("input/endpoint_list.csv")
-gw_quality_variables <- fread("input/gw_quality_variables.csv")
 
 # Comment this out if you want to work with more than one council
 site_list <- site_list[region == "West Coast",]
