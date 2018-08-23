@@ -24,8 +24,9 @@ for(i in 1:nrow(region_list)){
                     mc.style = "ETA")
     
     gq_data <- rbindlist(gq_data, fill = TRUE)
-    gq_data[, region := region_it]
-    
+    if(nrow(gq_data)){
+        gq_data[, region := region_it]
+    }
     cat("Saving data from ", region_it,": \n\n")
     saveRDS(gq_data, paste0("downloads/",region_it, "_gw_data.RDS"), compress = TRUE)
     

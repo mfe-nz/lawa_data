@@ -67,7 +67,7 @@ colnames(num_sites_ts)[colnames(num_sites_ts) %in% "V1"] <- "ts_count"
 colnames(num_sites_wfs)[colnames(num_sites_wfs) %in% "N"] <- "wfs_count"
 
 site_count <- merge(num_sites_ts, num_sites_wfs, by = "region")
-site_count[!(region %in% df_count[(ts_count == wfs_count),region]),]
+site_count[!(region %in% site_count[(ts_count == wfs_count),region]),]
 
 # manually add Auckland sites 
 site_list_combined <- rbind(site_list_merged, 

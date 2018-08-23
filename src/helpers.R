@@ -118,12 +118,12 @@ build_measurement_list <- function(region_name, site, endpoint, server){
     }
 }      
 
-build_getData_list <- function(region_name, site, endpoint, server){
+build_getData_list <- function(site, measurement, server){
     if(server == "hilltop"){
         #build the request
         testrequest <- paste("service=Hilltop&request=GetData&Site=",site,"&Measurement=",measurement,"&From=",startDate,"&To=",endDate,sep="")
         #get the xml data from the server
-        tss_url <- endpoint_list[region == measurement_list[i, region], endpoint]
+        tss_url <- endpoint_list[region == measurement_list_it[i, region], endpoint]
         url<-paste(tss_url, testrequest, sep="?")
         dataxml<-anyXmlParse(url)
         #convert the xml into a dataframe of measurement results
@@ -164,7 +164,7 @@ build_getData_list <- function(region_name, site, endpoint, server){
         #build the request
         testrequest <- paste("datasource=0&service=SOS&version=2.0&request=GetObservation&featureOfInterest=",site,"&procedure=GWLawa.Sample.Results.P&observedProperty=",measurement,"&From=",startDate,"&To=",endDate,sep="")
         #get the xml data from the server
-        tss_url <- endpoint_list[region == measurement_list[i, region], endpoint]
+        tss_url <- endpoint_list[region == measurement_list_it[i, region], endpoint]
         url<-paste(tss_url, testrequest, sep="?")
         
         datahtml <- readHTMLTable(url)
@@ -188,13 +188,12 @@ xmlParse_fw <- function(url){
     return(xmlfile)
 }
 
-
 extract_measurements <- function (i){
     tryCatch({
         cat("Getting list of measurements from: ", 
             site_list[i, region], 
             site_list[i, councilsiteid], "\n\n")
-        df <- build_measurement_list(region_name = site_list[i, region], 
+        df <- build_getData_list(region_name = site_list[i, region], 
                                      site = site_list[i, councilsiteid],
                                      endpoint = endpoint_list[region == site_list[i, region], endpoint],
                                      server = endpoint_list[region == site_list[i, region], server_system])
@@ -209,50 +208,18 @@ extract_measurements <- function (i){
 }
 
 extract_data <- function(i){
-    site <- measurement_list[i,site] #select the site
-    
-    measurement <- measurement_list[i, MeasurementName] #select the measurement
-    message(paste("Requesting", site, measurement))
-    
-    #build the request
-    testrequest <- paste("service=Hilltop&request=GetData&Site=",site,"&Measurement=",measurement,"&From=",startDate,"&To=",endDate,sep="")
-    #get the xml data from the server
-    tss_url <- endpoint_list[region == measurement_list[i, region], endpoint]
-    url<-paste(tss_url, testrequest, sep="?")
-    dataxml<-anyXmlParse(url)
-    #convert the xml into a dataframe of measurement results
-    #with basic error handling
-    wqdata<-tryCatch({
-        as.data.table(hilltopMeasurement(dataxml))
-    }, error=function(err){message(paste("Error retrieving", site, measurement))})  
-    wqdata
-    
-    ## WQ sample metadata (Hilltop servers only)
-    message(paste("Requesting", site, "WQ Sample metadata"))
-    
-    #get the WQ Sample parameters for the site
-    #build the request
-    WQSampleRequest <- paste("service=Hilltop&request=GetData&Site=",site,"&Measurement=WQ Sample&From=",startDate,"&To=",endDate,sep="")
-    
-    #get the xml data from the server
-    
-    url<-paste(tss_url, WQSampleRequest, sep="?")
-    wqdataxml<-anyXmlParse(url)
-    # wqdataxml<-xmlParse_fw(url)
-    
-    ##convert the xml to a dataframe of WQ Sample results
-    #with basic error handling added
-    wqSampleData<-tryCatch({
-        hilltopMeasurementToDF(wqdataxml)
-    }, error=function(err){message(paste("Error retrieving", site, "WQ Sample Information"))})
-    wqSampleData
-    #merge the WQ Sample data with the measurement data with basic error handling.
-    if(length(wqSampleData)>0){
-        output<-tryCatch({
-            merge(wqdata,wqSampleData,by="Time",all.x = TRUE)
-        }, error=function(err){message(paste("No WQ Sample information, leaving blank"))})
-        return(output)
-    } else {
-        return(wqdata)
-    }
+    tryCatch({
+        cat("Getting data from: ",
+            measurement_list_it[i, region], "\n\n")
+        
+        df <- build_getData_list(site = measurement_list_it[i,site],
+                             measurement = measurement_list_it[i,MeasurementName],
+                             server = endpoint_list[region == measurement_list_it[i,region], server_system])
+        df[,region := measurement_list_it[i, region]]
+        cat("Success!! \n\n")
+        return(df)
+        }, error=function(e){
+            cat("ERROR extracting data from", 
+                measurement_list_it[i, region], ":\n",
+                conditionMessage(e), "\n")})
 }
