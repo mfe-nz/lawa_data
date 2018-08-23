@@ -34,11 +34,12 @@ for(i in 1:nrow(region_list)){
            object = paste0(region_it, "_gw_data"), 
            bucket = "lawa.data")
     
+    file.remove(paste0("downloads/",region_it, "_gw_data.RDS"))
+    
     region_it <- NULL
     measurement_list_it <- NULL
     gq_data <- NULL
     cat("Success!! \n\n\n")
 }
 end_time <- Sys.time()
-
 elapsed_time <- end_time - start_time
