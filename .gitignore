@@ -4,6 +4,7 @@
 .Ruserdata
 .xml
 downloads/*.csv
+downloads/*.RDS
 build/*.csv
 input/*.csv
 src/*.html
