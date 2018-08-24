@@ -223,3 +223,9 @@ extract_data <- function(i){
                 measurement_list_it[i, region], ":\n",
                 conditionMessage(e), "\n")})
 }
+
+download_data <- function(item){
+    save_object(object = item,
+                bucket = "lawa.data",
+                file = paste0("data/", item, ".RDS"))
+}

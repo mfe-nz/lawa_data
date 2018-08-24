@@ -76,3 +76,5 @@ site_list_combined <- rbind(site_list_merged,
                               fill = TRUE)
 
 write.csv(site_list_combined, "build/site_list.csv", row.names = FALSE)
+
+cat("Got site list")

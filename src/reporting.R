@@ -9,6 +9,7 @@ download_data <- function(item){
                 file = paste0("data/", item, ".RDS"))
 }
 
-lapply(object_list$Key, download_input)
+lapply(object_list$Key, download_data)
 
-list.files("data/")
+data_files <- list.files("data/")
+
