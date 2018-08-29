@@ -190,12 +190,12 @@ xmlParse_fw <- function(url){
     return(xmlfile)
 }
 
-extract_measurements <- function (i){
+extract_measurements <- function(i){
     tryCatch({
         cat("Getting list of measurements from: ", 
             site_list[i, region], 
             site_list[i, councilsiteid], "\n\n")
-        df <- build_getData_list(region_name = site_list[i, region], 
+        df <- build_measurement_list(region_name = site_list[i, region], 
                                      site = site_list[i, councilsiteid],
                                      endpoint = endpoint_list[region == site_list[i, region], endpoint],
                                      server = endpoint_list[region == site_list[i, region], server_system])

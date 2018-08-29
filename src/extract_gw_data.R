@@ -43,3 +43,5 @@ for(i in 1:nrow(region_list)){
 }
 end_time <- Sys.time()
 elapsed_time <- end_time - start_time
+
+cat(elapsed_time)
