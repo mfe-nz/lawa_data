@@ -8,7 +8,8 @@ pkgs <- c('XML',
           'data.table',
           'readxl',
           'aws.s3',
-          'pbmcapply')
+          'pbmcapply',
+          'ggplot2')
 
 if(!all(pkgs %in% installed.packages()[, 'Package']))
     install.packages(pkgs[!(pkgs %in% installed.packages()[, 'Package'])], dep = T)
