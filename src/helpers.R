@@ -169,7 +169,13 @@ build_getData_list <- function(site, measurement, server){
         tss_url <- endpoint_list[region == measurement_list_it[i, region], endpoint]
         url<-paste(tss_url, testrequest, sep="?")
         
-        datahtml <- readHTMLTable(url)
+        wqdataxml <- anyXmlParse(url)
+        
+        ##convert the xml to a dataframe of WQ Sample results
+        #with basic error handling added
+        wqSampleData<-tryCatch({
+            df[2] <- xml2::read_xml(url)
+        }, error=function(err){message(paste("Error retrieving", site, "WQ Sample Information"))})
         
         df<-tryCatch({
             as.data.table(datahtml)

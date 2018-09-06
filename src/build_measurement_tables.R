@@ -5,14 +5,7 @@ source("src/build_site_tables.R")
 site_list <- fread("build/site_list.csv")
 
 # Comment this out if you want to work with more than one council
-# site_list <- site_list[region == "Taranaki",]
-
-# # switch siteid and councilciteid for Taranaki
-# df <- site_list[region == "Taranaki", councilsiteid_temp := councilsiteid]
-# df[region == "Taranaki", councilsiteid := siteid]
-# df[region == "Taranaki", siteid := councilsiteid_temp]
-# df[, councilsiteid_temp := NULL]
-# site_list <- df
+# site_list <- site_list[region == "Waikato",]
 
 measurement_list <- pbmclapply(X=1:nrow(site_list),
                       FUN = extract_measurements,

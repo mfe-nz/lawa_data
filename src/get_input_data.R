@@ -21,3 +21,5 @@ region_list[ , wfs_file := paste0(gsub(" |'", "_", tolower(region)),"_wfs")]
 
 endpoint_list <- fread("input/endpoint_list.csv")
 gw_quality_variables <- fread("input/gw_quality_variables.csv")
+
+parameter_list <- fread("input/parameter_list.csv", na.strings = "")

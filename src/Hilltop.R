@@ -1,10 +1,6 @@
 #Functions to interact with a Hilltop server and provide data in R data frames.
 # Jeff Cooke May 2016
 
-#Get a list of sites available from a service
-#May be able to tidy this and use similar method to getting measurement data.
-
-
 hilltopSiteList <- function(sitexml) {
     #Takes an parsed xml document from a Hilltop SiteList request. 
     #Returns a dataframe of the available sites and location if available.

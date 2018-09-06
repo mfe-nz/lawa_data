@@ -10,6 +10,8 @@ wfs_request_fields_ms[field_name %in% fields,]
 site_list <- list()
 for(i in 1:nrow(region_list)){
     tryCatch({
+        cat("Getting list of sites from: ", 
+            region_list[i, region], " WFS. \n") 
         df <- as.data.table(get(region_list[i, wfs_file]))
         df <- df[, fields, with = FALSE]
         df[, region := region_list[i, region]]
@@ -22,6 +24,7 @@ for(i in 1:nrow(region_list)){
                          gwqualitystatus == "Y",]}
         site_list[[region_list[i, region]]] <- df
         df <- NULL
+        cat("Success!! \n\n")
         },
              error=function(e){
                  cat("ERROR reading wfs.csv from", wfs_list[i, region],":\n",
@@ -30,7 +33,13 @@ for(i in 1:nrow(region_list)){
 
 site_list <- rbindlist(site_list)
 
-# check Which regions are missing
+# switch siteid and councilciteid for Taranaki
+site_list[region == "Taranaki", councilsiteid_temp := councilsiteid]
+site_list[region == "Taranaki", councilsiteid := siteid]
+site_list[region == "Taranaki", siteid := councilsiteid_temp]
+site_list[, councilsiteid_temp := NULL]
+
+# check Which regions are missing from site_list
 region_list[!(region %in% unique(site_list[,region])), region]
 
 # Get time-series server site names in order to debug any measurement list request issues
@@ -53,6 +62,10 @@ for(i in 1:nrow(region_list)){
 }
 
 site_list_ts <- rbindlist(site_list_ts, fill = TRUE)
+
+# check Which regions are missing from site_list_ts
+region_list[!(region %in% unique(site_list_ts[,region])), region]
+
 colnames(site_list_ts)[colnames(site_list_ts) %in% "site"] <- "councilsiteid"
 site_list_ts[region == "Waikato" |
                  region == "Auckland" |
